@@ -1,0 +1,205 @@
+CREATE TABLE ANAGRAFICA (
+IdAnagrafica INT PRIMARY KEY IDENTITY NOT NULL, 
+Cognome NVARCHAR(30) NOT NULL, 
+Nome NVARCHAR(30) NOT NULL, 
+Indirizzo NVARCHAR(30) NOT NULL, 
+Città NVARCHAR(15) NOT NULL, 
+CAP DECIMAL(5,0) NOT NULL, 
+Cod_Fisc CHAR(16) UNIQUE NOT NULL
+)
+
+CREATE TABLE TIPO_VIOLAZIONE (
+IdViolazione INT PRIMARY KEY NOT NULL IDENTITY, 
+descrizione NVARCHAR(50) NOT NULL
+)
+
+CREATE TABLE VERBALE (
+IdVerbale INT PRIMARY KEY IDENTITY NOT NULL, 
+DataViolazione DATE NOT NULL, 
+IndirizzoViolazione NVARCHAR(40) NOT NULL, 
+Nominativo_Agente NVARCHAR(40) NOT NULL, 
+DataTrascrizioneVerbale DATE NOT NULL, 
+Importo MONEY NOT NULL,
+DecurtamentoPunti INT NOT NULL CHECK (DecurtamentoPunti >= 0),
+
+IdAnagrafica INT NOT NULL,
+IdViolazione INT NOT NULL,
+
+CONSTRAINT FK_ANAGRAFICA_VERBALE
+FOREIGN KEY (IdAnagrafica) REFERENCES ANAGRAFICA (IdAnagrafica),
+
+CONSTRAINT FK_TIPO_VIOLAZIONE_VERBALE
+FOREIGN KEY (IdViolazione) REFERENCES TIPO_VIOLAZIONE (IdViolazione)
+)
+
+------ RECUPERO DATI DELLE TABELLE PER LA VISUALIZZAZIONE ------
+
+SELECT * FROM ANAGRAFICA
+SELECT * FROM TIPO_VIOLAZIONE
+SELECT * FROM VERBALE
+
+------ CANCELLAZIONE TABELLE IN CASO DI ERRORI DI SCRITTURA -------
+
+--DROP TABLE VERBALE
+--DROP TABLE TIPO_VIOLAZIONE
+--DROP TABLE ANAGRAFICA
+
+
+------ INSERIMENTO DATI NELLA TABELLA ANAGRAFICA -------
+
+INSERT INTO ANAGRAFICA VALUES ('Laguda', 'Stefano', 'Via giuseppe vitiello 8', 'Scafati', 84018, 'cddjemxlwnconmew')
+
+INSERT INTO ANAGRAFICA VALUES ('Senatore', 'Luca', 'Via pippo', 'Palermo', 25014, 'cddjemxsnepwnmew')
+
+INSERT INTO ANAGRAFICA VALUES ('Ponzani', 'Simone', 'Via spostare macchina', 'Roma', 20410, 'pwsmemxlwnconmew')
+
+INSERT INTO ANAGRAFICA VALUES ('Savignano', 'Andrea', 'Via pluto', 'Salerno', 84121, 'cddjemplnnpjnmew')
+
+INSERT INTO ANAGRAFICA VALUES ('Filippo', 'Daniela', 'Via minnie', 'Palermo', 25014, 'woeneocpenrkvdap')
+
+INSERT INTO ANAGRAFICA VALUES ('Peppe', 'Pippo', 'Via neutrone', 'Palermo', 25014, 'prndemxswlfkrtos')
+
+------ INSERIMENTO DATI NELLA TABELLA TIPO_VIOLAZIONE -------
+
+
+INSERT INTO TIPO_VIOLAZIONE VALUES ('Eccesso di velocita')
+
+INSERT INTO TIPO_VIOLAZIONE VALUES ('Parcheggio non pagato')
+
+INSERT INTO TIPO_VIOLAZIONE VALUES ('Divieto di sosta')
+
+INSERT INTO TIPO_VIOLAZIONE VALUES ('Divieto di transito')
+
+INSERT INTO TIPO_VIOLAZIONE VALUES ('Guida con un braccio rotto')
+
+INSERT INTO TIPO_VIOLAZIONE VALUES ('Guida pericolosa')
+
+INSERT INTO TIPO_VIOLAZIONE VALUES ('Guida con un braccio rotto')
+
+INSERT INTO TIPO_VIOLAZIONE VALUES ('Guida senza patente')
+
+
+------ INSERIMENTO DATI NELLA TABELLA VERBALE -------
+
+
+INSERT INTO VERBALE VALUES ('2009-02-01', 'Via paperino 90', 'Martina', '2009-02-03', 900, 8, 1, 6)
+
+
+INSERT INTO VERBALE VALUES ('2009-04-01', 'Via pluto 22', 'Patrizio', '2009-04-03', 200, 0, 2, 2)
+
+INSERT INTO VERBALE VALUES ('2009-09-01', 'Via MINNIE 2', 'Luca', '2009-09-03', 600, 6, 3, 1)
+
+INSERT INTO VERBALE VALUES ('2010-06-01', 'Via qui 22', 'Patrizio', '2010-06-03', 300, 3, 4, 4)
+
+INSERT INTO VERBALE VALUES ('2007-06-01', 'Via boh 22', 'Patrizio', '2007-06-03', 100, 1, 1, 8)
+
+INSERT INTO VERBALE VALUES ('2010-01-01', 'Via boh 22', 'Patrizio', '2010-01-03', 1600, 9, 2, 8)
+
+INSERT INTO VERBALE VALUES ('2009-03-01', 'Via weww 4', 'Marco', '2009-03-03', 2000, 1, 4, 7)
+
+
+
+--- INIZIO QUERY DELL'ESERCIZIO ----
+
+
+
+-- 1. Conteggio dei verbali trascritti
+
+SELECT COUNT(*) AS ConteggioVerbali FROM VERBALE
+
+-- 2. Conteggio dei verbali trascritti raggruppati per anagrafe
+
+
+SELECT COUNT(*) AS ConteggioVerbaliPerPersona FROM VERBALE GROUP BY IdAnagrafica
+
+
+
+SELECT COUNT(*) AS ConteggioVerbaliPerPersona, Nome, Cognome 
+FROM VERBALE 
+INNER JOIN
+ANAGRAFICA
+ON VERBALE.IdAnagrafica = ANAGRAFICA.IdAnagrafica
+GROUP BY Nome, Cognome
+
+
+
+
+-- 3. Conteggio dei verbali trascritti raggruppati per tipo di violazione
+
+SELECT COUNT(*) AS ConteggioVerbaliPerViolazione FROM VERBALE GROUP BY IdViolazione
+
+SELECT COUNT(*) AS ConteggioVerbaliPerViolazione, descrizione FROM VERBALE
+INNER JOIN 
+TIPO_VIOLAZIONE ON VERBALE.IdViolazione = TIPO_VIOLAZIONE.IdViolazione
+GROUP BY Descrizione
+
+
+-- 4. Totale dei punti decurtati per ogni anagrafe
+
+SELECT SUM(DecurtamentoPunti) AS TotalePuntiDecurtati FROM VERBALE GROUP BY IdAnagrafica
+
+SELECT SUM(DecurtamentoPunti) AS TotalePuntiDecurtati, Nome, Cognome 
+FROM VERBALE
+INNER JOIN
+ANAGRAFICA
+ON VERBALE.IdAnagrafica = ANAGRAFICA.IdAnagrafica
+GROUP BY Nome, Cognome
+
+
+-- 5. Cognome, Nome, Data violazione, Indirizzo violazione, importo e punti decurtati per tutti gli anagrafici residenti a Palermo
+
+SELECT Cognome, Nome, IndirizzoViolazione, Importo, DecurtamentoPunti, Città
+FROM ANAGRAFICA
+INNER JOIN 
+VERBALE ON ANAGRAFICA.IdAnagrafica = VERBALE.IdAnagrafica
+WHERE Città = 'Palermo'
+
+
+-- 6. Cognome, Nome, Indirizzo, Data violazione, importo e punti decurtati per le violazioni 
+-- fatte tra il febbraio 2009 e luglio 2009
+
+SELECT Cognome, Nome, IndirizzoViolazione, Importo, DecurtamentoPunti, DataViolazione
+FROM ANAGRAFICA
+INNER JOIN 
+VERBALE ON ANAGRAFICA.IdAnagrafica = VERBALE.IdAnagrafica
+WHERE DataViolazione BETWEEN '2009-02-01' AND '2009-07-01'
+
+
+-- 7. Totale degli importi per ogni anagrafico
+
+SELECT SUM(Importo) AS TotaleImporti FROM VERBALE GROUP BY IdAnagrafica
+
+SELECT SUM(Importo) AS TotaleImporti, Nome, Cognome
+FROM VERBALE
+INNER JOIN
+ANAGRAFICA
+ON VERBALE.IdAnagrafica = ANAGRAFICA.IdAnagrafica
+GROUP BY Nome, Cognome
+
+
+-- 8. Visualizzazione di tutti gli anagrafici residenti a Palermo
+
+SELECT  Cognome, Nome, Città FROM ANAGRAFICA WHERE Città ='Palermo'
+
+
+-- 10. Conteggio delle violazioni contestate raggruppate per Nominativo dell’agente di Polizia
+
+SELECT COUNT(*) AS ConteggioViolazioni, Nominativo_Agente FROM VERBALE GROUP BY Nominativo_Agente
+
+-- 11. Cognome, Nome, Indirizzo, Data violazione, Importo e punti decurtati per tutte le violazioni che superino i decurtamento di 5 punti
+
+SELECT Cognome, Nome, IndirizzoViolazione, DataViolazione, Importo, DecurtamentoPunti 
+FROM  ANAGRAFICA
+INNER JOIN
+VERBALE
+ON ANAGRAFICA.IdAnagrafica = VERBALE.IdAnagrafica
+WHERE DecurtamentoPunti > 5
+
+
+-- 12. Cognome, Nome, Indirizzo, Data violazione, Importo e punti decurtati per tutte le violazioni che superino l’importo di 400 euro
+SELECT Cognome, Nome, IndirizzoViolazione, DataViolazione, Importo, DecurtamentoPunti 
+FROM  ANAGRAFICA
+INNER JOIN
+VERBALE
+ON ANAGRAFICA.IdAnagrafica = VERBALE.IdAnagrafica
+WHERE Importo > 400
